@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FNAF 4: Simplified Version</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #111;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        #game {
+            width: 600px;
+            height: 400px;
+            background-color: #222;
+            margin: 20px auto;
+            position: relative;
+            display: none;
+        }
+        .animatronic {
+            font-size: 50px;
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        #leftAnimatronic { left: 20px; top: 150px; }
+        #rightAnimatronic { right: 20px; top: 150px; }
+        #closetAnimatronic { left: 250px; top: 50px; }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        #energyDisplay {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        #gameOverScreen, #winScreen {
+            display: none;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        #gameOverScreen button, #winScreen button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>FNAF 4: Simplified Version</h1>
+<div id="game">
+    <div class="animatronic" id="leftAnimatronic">👻</div>
+    <div class="animatronic" id="rightAnimatronic">👻</div>
+    <div class="animatronic" id="closetAnimatronic">🎃</div>
+    <div id="energyDisplay">Енергія: 100</div>
+</div>
+
+<button onclick="startGame()">Почати гру</button>
+<button onclick="flashlightLeft()" id="flashlightLeftButton" style="display:none;">Фонарик ліворуч</button>
+<button onclick="flashlightRight()" id="flashlightRightButton" style="display:none;">Фонарик праворуч</button>
+<button onclick="checkCloset()" id="closetButton" style="display:none;">Перевірити шафу</button>
+<button onclick="closeLeftDoor()" id="leftDoorButton" style="display:none;">Закрити ліві двері</button>
+<button onclick="closeRightDoor()" id="rightDoorButton" style="display:none;">Закрити праві двері</button>
+
+<div id="gameOverScreen">
+    <div class="message" id="message"></div>
+    <button onclick="startGame()">Почати знову</button>
+</div>
+
+<div id="winScreen">
+    <div class="message">Вітаємо! Ви виграли!</div>
+    <button onclick="startGame()">Почати знову</button>
+</div>
+
+<script>
+    let gameInterval;
+    let energy = 100;
+    let isGameOver = false;
+    let leftAnimatronicStage = 0;
+    let rightAnimatronicStage = 0;
+    let closetAnimatronicStage = 0;
+    let timeLeft = 30000; // Time to win (30 seconds for simplicity)
+
+    function startGame() {
+        isGameOver = false;
+        energy = 100;
+        leftAnimatronicStage = 0;
+        rightAnimatronicStage = 0;
+        closetAnimatronicStage = 0;
+        document.getElementById('gameOverScreen').style.display = 'none';
+        document.getElementById('winScreen').style.display = 'none';
+        document.getElementById('flashlightLeftButton').style.display = 'inline-block';
+        document.getElementById('flashlightRightButton').style.display = 'inline-block';
+        document.getElementById('closetButton').style.display = 'inline-block';
+        document.getElementById('leftDoorButton').style.display = 'inline-block';
+        document.getElementById('rightDoorButton').style.display = 'inline-block';
+        document.getElementById('energyDisplay').innerText = 'Енергія: ' + energy;
+        document.getElementById('game').style.display = 'block';
+
+        startAnimatronicBehavior();
+        setTimeout(() => {
+            if (!isGameOver) endWin();
+        }, timeLeft);
+    }
+
+    function startAnimatronicBehavior() {
+        clearInterval(gameInterval);
+        gameInterval = setInterval(() => {
+            if (isGameOver) return;
+
+            // Increase animatronic stages randomly
+            if (Math.random() < 0.3) leftAnimatronicStage++;
+            if (Math.random() < 0.3) rightAnimatronicStage++;
+            if (Math.random() < 0.2) closetAnimatronicStage++;
+
+            updateAnimatronics();
+        }, 3000);
+    }
+
+    function updateAnimatronics() {
+        if (leftAnimatronicStage >= 3) {
+            endGame('Гра закінчена! Аніматронік атакував зліва!');
+        } else {
+            document.getElementById('leftAnimatronic').style.opacity = leftAnimatronicStage > 0 ? '1' : '0';
+        }
+
+        if (rightAnimatronicStage >= 3) {
+            endGame('Гра закінчена! Аніматронік атакував справа!');
+        } else {
+            document.getElementById('rightAnimatronic').style.opacity = rightAnimatronicStage > 0 ? '1' : '0';
+        }
+
+        if (closetAnimatronicStage >= 2) {
+            endGame('Гра закінчена! Аніматронік виліз із шафи!');
+        } else {
+            document.getElementById('closetAnimatronic').style.opacity = closetAnimatronicStage > 0 ? '1' : '0';
+        }
+    }
+
+    function flashlightLeft() {
+        if (isGameOver) return;
+        energy -= 5;
+        updateEnergy();
+        leftAnimatronicStage = 0;
+        updateAnimatronics();
+    }
+
+    function flashlightRight() {
+        if (isGameOver) return;
+        energy -= 5;
+        updateEnergy();
+        rightAnimatronicStage = 0;
+        updateAnimatronics();
+    }
+
+    function checkCloset() {
+        if (isGameOver) return;
+        energy -= 5;
+        updateEnergy();
+        closetAnimatronicStage = 0;
+        updateAnimatronics();
+    }
+
+    function closeLeftDoor() {
+        if (isGameOver) return;
+        energy -= 10;
+        updateEnergy();
+    }
+
+    function closeRightDoor() {
+        if (isGameOver) return;
+        energy -= 10;
+        updateEnergy();
+    }
+
+    function updateEnergy() {
+        if (energy <= 0) {
+            endGame('Гра закінчена! Енергія закінчилася!');
+        } else {
+            document.getElementById('energyDisplay').innerText = 'Енергія: ' + energy;
+        }
+    }
+
+    function endGame(message) {
+        isGameOver = true;
+        clearInterval(gameInterval);
+        document.getElementById('message').innerText = message;
+        document.getElementById('gameOverScreen').style.display = 'block';
+    }
+
+    function endWin() {
+        isGameOver = true;
+        clearInterval(gameInterval);
+        document.getElementById('winScreen').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
+
+
+
